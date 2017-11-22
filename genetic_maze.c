@@ -224,7 +224,7 @@ int main(){
 	finish_pos.x = 8;
 	finish_pos.y = 8;
 	fill();
-	printf("Start maze: \r\n");
+	printf("Iniciar labirinto: \r\n");
 	print_maze();
 
 	for(int i = 0; i < 50000; i++){
@@ -233,13 +233,13 @@ int main(){
 		score();
 		if(scores[0].score < FINAL_SCORE){
 			print_maze_path();
-			printf("Path found in %d generation\n", i);
+			printf("Caminho encontrado na %d generacao\n", i);
 			printf("Score: %d\n", scores[0].score);
 
 			break;
 		}
 		if(i % 100 == 0){
-			printf("generation: %d\n", i);
+			printf("generacao: %d\n", i);
 			//move_player(); // best
 			//print_maze();
 			//player_reset();
