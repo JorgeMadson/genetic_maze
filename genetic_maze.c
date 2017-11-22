@@ -38,18 +38,19 @@ int maze[MAZE_X][MAZE_Y] = {	{'#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
 
 void print_maze_path(){
 	//int cnt = 0;
-	char temp[MAZE_X][MAZE_Y] = {}; 
-	memcpy(temp, maze, MAZE_X*MAZE_Y); 
-	for(int i = 0; i < MOVE_LIMIT; i++){
+	char temp[MAZE_X][MAZE_Y] = {};
+	memcpy(temp, maze, MAZE_X*MAZE_Y);
+	int i;
+	for(i = 0; i < MOVE_LIMIT; i++){
 		if(array[scores[0].index][i]){
 			func_ptr[array[scores[0].index][i]](); // best score path
 			maze[player.x][player.y] = '*';//(char)(i+97);
 			//cnt++;
 		}
 	}
-
-	for(int x = 0; x < MAZE_X; x++){
-		for(int y = 0; y < MAZE_Y; y++){
+    int x,y;
+	for(x = 0; x < MAZE_X; x++){
+		for(y = 0; y < MAZE_Y; y++){
 			if(player.x == x && player.y == y)
 				printf(" P ");
 			else if(finish_pos.x == x && finish_pos.y == y)
@@ -67,8 +68,9 @@ void print_maze_path(){
 }
 
 void print_maze(){
-	for(int x = 0; x < MAZE_X; x++){
-		for(int y = 0; y < MAZE_Y; y++){
+    int x,y;
+	for(x = 0; x < MAZE_X; x++){
+		for(y = 0; y < MAZE_Y; y++){
 			if(player.x == x && player.y == y)
 				printf(" P ");
 			else if(finish_pos.x == x && finish_pos.y == y)
@@ -128,8 +130,9 @@ void player_move_right(){
 
 
 void fill(){
-	for(int x = 0; x < POPULATION_SIZE; x++){
-		for(int y = 0; y < MOVE_LIMIT; y++){
+    int x,y;
+	for(x = 0; x < POPULATION_SIZE; x++){
+		for(y = 0; y < MOVE_LIMIT; y++){
 			array[x][y] = rand() % 5;
 		}
 	}
@@ -137,8 +140,9 @@ void fill(){
 
 // bubble sort
 int* sort(int* array, int size){
-	for(int x = 0; x < size - 1; x++){
-		for(int i = 0; i < size - x - 1; i++){
+    int x,i;
+	for(x= 0; x < size - 1; x++){
+		for(i = 0; i < size - x - 1; i++){
 			if(array[i] > array[i+1]){
 				int c = array[i];
 				array[i+1] = array[i];
@@ -150,8 +154,9 @@ int* sort(int* array, int size){
 }
 
 void sort_scores_t(){
-	for(int x = 0; x < POPULATION_SIZE - 1; x++){
-		for(int i = 0; i < POPULATION_SIZE - x - 1; i++){
+    int x,i;
+	for(x = 0; x < POPULATION_SIZE - 1; x++){
+		for(i = 0; i < POPULATION_SIZE - x - 1; i++){
 			if(scores[i].score > scores[i+1].score){
 			    scores_t temp = scores[i];
 			    scores[i] = scores[i+1];
@@ -163,7 +168,8 @@ void sort_scores_t(){
 
 void cross() {
 	//copy to best_spec array
-	for (int i = 0; i < BEST_CNT; i++) {
+	int i;
+	for (i = 0; i < BEST_CNT; i++) {
 		memcpy(best_spec[i], array[scores[i].index], MOVE_LIMIT);
 	}
 
@@ -171,7 +177,7 @@ void cross() {
 	int secondParent = rand() % BEST_CNT;
 	int crossOver = rand() % MOVE_LIMIT;
 
-	for (int i = BEST_CNT + REPRODUCTIVE; i < POPULATION_SIZE; i++) {
+	for (i = BEST_CNT + REPRODUCTIVE; i < POPULATION_SIZE; i++) {
 		memcpy(array[i], best_spec[firstParent], crossOver);
 		memcpy(array[i], best_spec[secondParent], (MOVE_LIMIT - crossOver));
 	}
@@ -179,7 +185,8 @@ void cross() {
 }
 
 int fitness(int chromo){
-	for(int i = 0; i < MOVE_LIMIT; i++){
+    int i;
+	for(i = 0; i < MOVE_LIMIT; i++){
 		func_ptr[array[chromo][i]]();
 	}
 
@@ -190,7 +197,8 @@ int fitness(int chromo){
 }
 
 int score(){
-	for(int i = 0; i < POPULATION_SIZE; i++){
+    int i;
+	for(i = 0; i < POPULATION_SIZE; i++){
 		scores[i].score = fitness(i);
 		scores[i].index = i;
 		//printf("%d %d\n", scores[i].score, scores[i].index);
@@ -201,13 +209,15 @@ int score(){
 //
 
 void move_player(){
-	for(int i = 0; i < MOVE_LIMIT; i++){
+    int i;
+	for(i = 0; i < MOVE_LIMIT; i++){
 		func_ptr[array[scores[0].index][i]]();
 	}
 }
 
 void mutate(){
-	for(int i = 0; i < POPULATION_SIZE-1; i++){
+    int i;
+	for(i = 0; i < POPULATION_SIZE-1; i++){
 		if(MUTATION_CHANCE > (double)rand() / (double)RAND_MAX){ // random number (0,1)
 			array[i][rand() % 30] = rand() % 5; // chhose random element and mutate
 		}
@@ -226,8 +236,8 @@ int main(){
 	fill();
 	printf("Iniciar labirinto: \r\n");
 	print_maze();
-
-	for(int i = 0; i < 50000; i++){
+    int i;
+	for(i = 0; i < 50000; i++){
 		mutate();
 		cross();
 		score();
