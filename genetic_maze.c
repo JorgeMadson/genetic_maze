@@ -4,7 +4,7 @@
 #include <time.h>
 #include <math.h>
 
-#define LIMITE_MOVIMENTACAO 25
+#define LIMITE_MOVIMENTACAO 15
 #define LAB_X 10
 #define LAB_Y 10
 
@@ -15,7 +15,7 @@ Definição das funções para funcionamento do software
 
 /* Parametros sobre a população */
 #define TAM_POPULACAO 500
-#define BEST_CNT 7
+#define MELHORES_ESPECIMES 7
 #define REPRODUTIVOS 150
 #define VAL_PENALIDADE 2
 #define CHANCE_MUTACAO 0.5f
@@ -55,11 +55,11 @@ void mutacao();
 
 
 int vetor[TAM_POPULACAO][LIMITE_MOVIMENTACAO];
-int melhor_spec[BEST_CNT][LIMITE_MOVIMENTACAO];
+int melhor_spec[MELHORES_ESPECIMES][LIMITE_MOVIMENTACAO];
 
-ponto_t finish_pos;
-ponto_t player;
-int penalty;
+ponto_t pos_final;
+ponto_t pessoa;
+int penalidade;
 
 pontuacao_t pontos[TAM_POPULACAO];
 
@@ -86,16 +86,16 @@ void printar_lab_caminho(){
 	for(i = 0; i < LIMITE_MOVIMENTACAO; i++){
 		if(vetor[pontos[0].indice][i]){
 			func_ptr[vetor[pontos[0].indice][i]](); // melhor pontuacao de caminho
-			labirinto[player.x][player.y] = '*';//(char)(i+97);
+			labirinto[pessoa.x][pessoa.y] = '*';//(char)(i+97);
 			//cnt++;
 		}
 	}
     int x,y;
 	for(x = 0; x < LAB_X; x++){
 		for(y = 0; y < LAB_Y; y++){
-			if(player.x == x && player.y == y)
+			if(pessoa.x == x && pessoa.y == y)
 				printf(" P ");
-			else if(finish_pos.x == x && finish_pos.y == y)
+			else if(pos_final.x == x && pos_final.y == y)
 				printf(" F ");
 			else
 				printf(" %c ", labirinto[x][y]);
@@ -113,9 +113,9 @@ void printar_lab(){
     int x,y;
 	for(x = 0; x < LAB_X; x++){
 		for(y = 0; y < LAB_Y; y++){
-			if(player.x == x && player.y == y)
+			if(pessoa.x == x && pessoa.y == y)
 				printf(" P ");
-			else if(finish_pos.x == x && finish_pos.y == y)
+			else if(pos_final.x == x && pos_final.y == y)
 				printf(" F ");
 			else
 				printf(" %c ", labirinto[x][y]);
@@ -127,46 +127,46 @@ void printar_lab(){
 }
 
 void resetar_pessoa(){
-	player.x = 1;
-	player.y = 1;
-	penalty = 0;
+	pessoa.x = 1;
+	pessoa.y = 1;
+	penalidade = 0;
 }
 
 void pessoa_parada(){
-	// add penalty?
-	// penalty += 1;
+	// add penalidade?
+	// penalidade += 1;
 	return;
 }
 void pessoa_move_cima(){
-	if(labirinto[player.x-1][player.y] == '#'){
-		penalty += VAL_PENALIDADE;
+	if(labirinto[pessoa.x-1][pessoa.y] == '#'){
+		penalidade += VAL_PENALIDADE;
 		return;
 	}
-	player.x -= 1;
+	pessoa.x -= 1;
 }
 
 void pessoa_move_abaixo(){
-	if(labirinto[player.x+1][player.y] == '#'){
-		penalty += VAL_PENALIDADE;
+	if(labirinto[pessoa.x+1][pessoa.y] == '#'){
+		penalidade += VAL_PENALIDADE;
 		return;
 	}
-	player.x += 1;
+	pessoa.x += 1;
 }
 
 void pessoa_move_esquerda(){
-	if(labirinto[player.x][player.y-1] == '#'){
-		penalty += VAL_PENALIDADE;
+	if(labirinto[pessoa.x][pessoa.y-1] == '#'){
+		penalidade += VAL_PENALIDADE;
 		return;
 	}
-	player.y -= 1;
+	pessoa.y -= 1;
 }
 
 void pessoa_move_direita(){
-	if(labirinto[player.x][player.y+1] == '#'){
-		penalty += VAL_PENALIDADE;
+	if(labirinto[pessoa.x][pessoa.y+1] == '#'){
+		penalidade += VAL_PENALIDADE;
 		return;
 	}
-	player.y += 1;
+	pessoa.y += 1;
 }
 
 
@@ -211,15 +211,15 @@ void ordernar_pontuacao_t(){
 void crossover() {
 	//copy to melhor_spec vetor
 	int i;
-	for (i = 0; i < BEST_CNT; i++) {
+	for (i = 0; i < MELHORES_ESPECIMES; i++) {
 		memcpy(melhor_spec[i], vetor[pontos[i].indice], LIMITE_MOVIMENTACAO);
 	}
 
-	int firstParent = rand() % BEST_CNT;
-	int secondParent = rand() % BEST_CNT;
+	int firstParent = rand() % MELHORES_ESPECIMES;
+	int secondParent = rand() % MELHORES_ESPECIMES;
 	int crossOver = rand() % LIMITE_MOVIMENTACAO;
 
-	for (i = BEST_CNT + REPRODUTIVOS; i < TAM_POPULACAO; i++) {
+	for (i = MELHORES_ESPECIMES + REPRODUTIVOS; i < TAM_POPULACAO; i++) {
 		memcpy(vetor[i], melhor_spec[firstParent], crossOver);
 		memcpy(vetor[i], melhor_spec[secondParent], (LIMITE_MOVIMENTACAO - crossOver));
 	}
@@ -232,7 +232,7 @@ int fitness(int chromo){
 		func_ptr[vetor[chromo][i]]();
 	}
 
-	int pontuacao = abs(finish_pos.x - player.x) + abs(finish_pos.y - player.y) + penalty;
+	int pontuacao = abs(pos_final.x - pessoa.x) + abs(pos_final.y - pessoa.y) + penalidade;
 
 	resetar_pessoa();
 	return pontuacao;
@@ -268,13 +268,13 @@ void mutacao(){
 
 int main(){
 	time_t t;
-	/* Intializes random number generator */
+	/* Inicializa o random number generator */
 	srand((unsigned) time(&t));
 
-	player.x = 1;
-	player.y = 1;
-	finish_pos.x = 8;
-	finish_pos.y = 8;
+	pessoa.x = 1;
+	pessoa.y = 1;
+	pos_final.x = 8;
+	pos_final.y = 8;
 	preencher();
 	printf("Iniciar labirinto: \r\n");
 	printar_lab();
@@ -291,9 +291,10 @@ int main(){
 			break;
 		}
 		if(i % 100 == 0){
+		    system("cls");
 			printf("geracao: %d\n", i);
 			mover_pessoa(); // best
-			//printar_lab();
+			printar_lab();
 			//resetar_pessoa();
 		}
 	}
