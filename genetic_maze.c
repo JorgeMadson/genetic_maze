@@ -260,8 +260,8 @@ void mover_pessoa(){
 void mutacao(){
     int i;
 	for(i = 0; i < TAM_POPULACAO-1; i++){
-		if(CHANCE_MUTACAO > (double)rand() / (double)RAND_MAX){ // random number (0,1)
-			vetor[i][rand() % 30] = rand() % 5; // chhose random element and mutacao
+		if(CHANCE_MUTACAO > (double)rand() / (double)RAND_MAX){ //  numero random (0,1)
+			vetor[i][rand() % 30] = rand() % 5; // escolhe um elemento random e faz mutacao
 		}
 	}
 }
