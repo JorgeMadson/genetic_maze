@@ -5,8 +5,8 @@
 #include <math.h>
 
 #define LIMITE_MOVIMENTACAO 25
-#define MAZE_X 10
-#define MAZE_Y 10
+#define LAB_X 10
+#define LAB_Y 10
 
 /*
 Definição das funções para funcionamento do software
@@ -16,10 +16,10 @@ Definição das funções para funcionamento do software
 /* Parametros sobre a população */
 #define TAM_POPULACAO 500
 #define BEST_CNT 7
-#define REPRODUCTIVE 150
-#define PENALTY_VAL 2
-#define MUTATION_CHANCE 0.5f
-#define FINAL_SCORE 3
+#define REPRODUTIVOS 150
+#define VAL_PENALIDADE 2
+#define CHANCE_MUTACAO 0.5f
+#define PONT_FINAL 3
 
 
 typedef struct{
@@ -28,45 +28,45 @@ typedef struct{
 }ponto_t;
 
 typedef struct{
-	int score;
-	int index;
+	int pontuacao;
+	int indice;
 }pontuacao_t;
 
 
 
-void print_maze();
-void print_maze_path();
+void printar_lab();
+void printar_lab_caminho();
 
-void player_reset();
-void player_stay();
-void player_move_up();
-void player_move_down();
-void player_move_left();
-void player_move_right();
-void fill();
-int* sort(int* array, int size);
-void sort_pontuacao_t();
-void cross();
+void resetar_pessoa();
+void pessoa_parada();
+void pessoa_move_cima();
+void pessoa_move_abaixo();
+void pessoa_move_esquerda();
+void pessoa_move_direita();
+void preencher();
+int* ordenar(int* vetor, int size);
+void ordernar_pontuacao_t();
+void crossover();
 int fitness(int chromo);
-int score();
-void move_player();
-void mutate();
+int pontuacao();
+void mover_pessoa();
+void mutacao();
 
 
 
-int array[TAM_POPULACAO][LIMITE_MOVIMENTACAO];
-int best_spec[BEST_CNT][LIMITE_MOVIMENTACAO];
+int vetor[TAM_POPULACAO][LIMITE_MOVIMENTACAO];
+int melhor_spec[BEST_CNT][LIMITE_MOVIMENTACAO];
 
 ponto_t finish_pos;
 ponto_t player;
 int penalty;
 
-pontuacao_t scores[TAM_POPULACAO];
+pontuacao_t pontos[TAM_POPULACAO];
 
-void (*func_ptr[5])() = {player_stay, player_move_up, player_move_down, player_move_left, player_move_right};
+void (*func_ptr[5])() = {pessoa_parada, pessoa_move_cima, pessoa_move_abaixo, pessoa_move_esquerda, pessoa_move_direita};
 
 
-int maze[MAZE_X][MAZE_Y] = {	{'#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
+int labirinto[LAB_X][LAB_Y] = {	{'#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
 								{'#', ' ', ' ', ' ', '#', ' ', '#', ' ', ' ', '#'},
 								{'#', ' ', '#', ' ', ' ', ' ', '#', ' ', '#', '#'},
 								{'#', ' ', '#', ' ', '#', '#', '#', ' ', ' ', '#'},
@@ -78,47 +78,47 @@ int maze[MAZE_X][MAZE_Y] = {	{'#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
 								{'#', '#', '#', '#', '#', '#', '#', '#', '#', '#'}};
 
 
-void print_maze_path(){
+void printar_lab_caminho(){
 	//int cnt = 0;
-	char temp[MAZE_X][MAZE_Y] = {};
-	memcpy(temp, maze, MAZE_X*MAZE_Y);
+	char temp[LAB_X][LAB_Y] = {};
+	memcpy(temp, labirinto, LAB_X*LAB_Y);
 	int i;
 	for(i = 0; i < LIMITE_MOVIMENTACAO; i++){
-		if(array[scores[0].index][i]){
-			func_ptr[array[scores[0].index][i]](); // best score path
-			maze[player.x][player.y] = '*';//(char)(i+97);
+		if(vetor[pontos[0].indice][i]){
+			func_ptr[vetor[pontos[0].indice][i]](); // melhor pontuacao de caminho
+			labirinto[player.x][player.y] = '*';//(char)(i+97);
 			//cnt++;
 		}
 	}
     int x,y;
-	for(x = 0; x < MAZE_X; x++){
-		for(y = 0; y < MAZE_Y; y++){
+	for(x = 0; x < LAB_X; x++){
+		for(y = 0; y < LAB_Y; y++){
 			if(player.x == x && player.y == y)
 				printf(" P ");
 			else if(finish_pos.x == x && finish_pos.y == y)
 				printf(" F ");
 			else
-				printf(" %c ", maze[x][y]);
+				printf(" %c ", labirinto[x][y]);
 
 		}
 		printf("\r\n");
 	}
-	player_reset();
-	memcpy(maze, temp, MAZE_X*MAZE_Y);
+	resetar_pessoa();
+	memcpy(labirinto, temp, LAB_X*LAB_Y);
 	printf("\r\n");
 	//printf("Goal reached in %d moves\r\n", cnt);
 }
 
-void print_maze(){
+void printar_lab(){
     int x,y;
-	for(x = 0; x < MAZE_X; x++){
-		for(y = 0; y < MAZE_Y; y++){
+	for(x = 0; x < LAB_X; x++){
+		for(y = 0; y < LAB_Y; y++){
 			if(player.x == x && player.y == y)
 				printf(" P ");
 			else if(finish_pos.x == x && finish_pos.y == y)
 				printf(" F ");
 			else
-				printf(" %c ", maze[x][y]);
+				printf(" %c ", labirinto[x][y]);
 
 		}
 		printf("\r\n");
@@ -126,44 +126,44 @@ void print_maze(){
 	printf("\r\n");
 }
 
-void player_reset(){
+void resetar_pessoa(){
 	player.x = 1;
 	player.y = 1;
 	penalty = 0;
 }
 
-void player_stay(){
+void pessoa_parada(){
 	// add penalty?
 	// penalty += 1;
 	return;
 }
-void player_move_up(){
-	if(maze[player.x-1][player.y] == '#'){
-		penalty += PENALTY_VAL;
+void pessoa_move_cima(){
+	if(labirinto[player.x-1][player.y] == '#'){
+		penalty += VAL_PENALIDADE;
 		return;
 	}
 	player.x -= 1;
 }
 
-void player_move_down(){
-	if(maze[player.x+1][player.y] == '#'){
-		penalty += PENALTY_VAL;
+void pessoa_move_abaixo(){
+	if(labirinto[player.x+1][player.y] == '#'){
+		penalty += VAL_PENALIDADE;
 		return;
 	}
 	player.x += 1;
 }
 
-void player_move_left(){
-	if(maze[player.x][player.y-1] == '#'){
-		penalty += PENALTY_VAL;
+void pessoa_move_esquerda(){
+	if(labirinto[player.x][player.y-1] == '#'){
+		penalty += VAL_PENALIDADE;
 		return;
 	}
 	player.y -= 1;
 }
 
-void player_move_right(){
-	if(maze[player.x][player.y+1] == '#'){
-		penalty += PENALTY_VAL;
+void pessoa_move_direita(){
+	if(labirinto[player.x][player.y+1] == '#'){
+		penalty += VAL_PENALIDADE;
 		return;
 	}
 	player.y += 1;
@@ -171,57 +171,57 @@ void player_move_right(){
 
 
 
-void fill(){
+void preencher(){
     int x,y;
 	for(x = 0; x < TAM_POPULACAO; x++){
 		for(y = 0; y < LIMITE_MOVIMENTACAO; y++){
-			array[x][y] = rand() % 5;
+			vetor[x][y] = rand() % 5;
 		}
 	}
 }
 
-// bubble sort
-int* sort(int* array, int size){
+// bubble ordenar
+int* ordenar(int* vetor, int size){
     int x,i;
 	for(x= 0; x < size - 1; x++){
 		for(i = 0; i < size - x - 1; i++){
-			if(array[i] > array[i+1]){
-				int c = array[i];
-				array[i+1] = array[i];
-				array[i] = c;
+			if(vetor[i] > vetor[i+1]){
+				int c = vetor[i];
+				vetor[i+1] = vetor[i];
+				vetor[i] = c;
 			}
 		}
 	}
-	return array;
+	return vetor;
 }
 
-void sort_pontuacao_t(){
+void ordernar_pontuacao_t(){
     int x,i;
 	for(x = 0; x < TAM_POPULACAO - 1; x++){
 		for(i = 0; i < TAM_POPULACAO - x - 1; i++){
-			if(scores[i].score > scores[i+1].score){
-			    pontuacao_t temp = scores[i];
-			    scores[i] = scores[i+1];
-			    scores[i+1] = temp;
+			if(pontos[i].pontuacao > pontos[i+1].pontuacao){
+			    pontuacao_t temp = pontos[i];
+			    pontos[i] = pontos[i+1];
+			    pontos[i+1] = temp;
 			}
 		}
 	}
 }
-
-void cross() {
-	//copy to best_spec array
+//crossover
+void crossover() {
+	//copy to melhor_spec vetor
 	int i;
 	for (i = 0; i < BEST_CNT; i++) {
-		memcpy(best_spec[i], array[scores[i].index], LIMITE_MOVIMENTACAO);
+		memcpy(melhor_spec[i], vetor[pontos[i].indice], LIMITE_MOVIMENTACAO);
 	}
 
 	int firstParent = rand() % BEST_CNT;
 	int secondParent = rand() % BEST_CNT;
 	int crossOver = rand() % LIMITE_MOVIMENTACAO;
 
-	for (i = BEST_CNT + REPRODUCTIVE; i < TAM_POPULACAO; i++) {
-		memcpy(array[i], best_spec[firstParent], crossOver);
-		memcpy(array[i], best_spec[secondParent], (LIMITE_MOVIMENTACAO - crossOver));
+	for (i = BEST_CNT + REPRODUTIVOS; i < TAM_POPULACAO; i++) {
+		memcpy(vetor[i], melhor_spec[firstParent], crossOver);
+		memcpy(vetor[i], melhor_spec[secondParent], (LIMITE_MOVIMENTACAO - crossOver));
 	}
 
 }
@@ -229,39 +229,39 @@ void cross() {
 int fitness(int chromo){
     int i;
 	for(i = 0; i < LIMITE_MOVIMENTACAO; i++){
-		func_ptr[array[chromo][i]]();
+		func_ptr[vetor[chromo][i]]();
 	}
 
-	int score = abs(finish_pos.x - player.x) + abs(finish_pos.y - player.y) + penalty;
+	int pontuacao = abs(finish_pos.x - player.x) + abs(finish_pos.y - player.y) + penalty;
 
-	player_reset();
-	return score;
+	resetar_pessoa();
+	return pontuacao;
 }
 
-int score(){
+int pontuacao(){
     int i;
 	for(i = 0; i < TAM_POPULACAO; i++){
-		scores[i].score = fitness(i);
-		scores[i].index = i;
-		//printf("%d %d\n", scores[i].score, scores[i].index);
+		pontos[i].pontuacao = fitness(i);
+		pontos[i].indice = i;
+		//printf("%d %d\n", pontos[i].pontuacao, pontos[i].indice);
 	}
-	sort_pontuacao_t();
-	return scores[0].index;
+	ordernar_pontuacao_t();
+	return pontos[0].indice;
 }
 //
 
-void move_player(){
+void mover_pessoa(){
     int i;
 	for(i = 0; i < LIMITE_MOVIMENTACAO; i++){
-		func_ptr[array[scores[0].index][i]]();
+		func_ptr[vetor[pontos[0].indice][i]]();
 	}
 }
 
-void mutate(){
+void mutacao(){
     int i;
 	for(i = 0; i < TAM_POPULACAO-1; i++){
-		if(MUTATION_CHANCE > (double)rand() / (double)RAND_MAX){ // random number (0,1)
-			array[i][rand() % 30] = rand() % 5; // chhose random element and mutate
+		if(CHANCE_MUTACAO > (double)rand() / (double)RAND_MAX){ // random number (0,1)
+			vetor[i][rand() % 30] = rand() % 5; // chhose random element and mutacao
 		}
 	}
 }
@@ -275,26 +275,26 @@ int main(){
 	player.y = 1;
 	finish_pos.x = 8;
 	finish_pos.y = 8;
-	fill();
+	preencher();
 	printf("Iniciar labirinto: \r\n");
-	print_maze();
+	printar_lab();
     int i;
 	for(i = 0; i < 50000; i++){
-		mutate();
-		cross();
-		score();
-		if(scores[0].score < FINAL_SCORE){
-			print_maze_path();
-			printf("Caminho encontrado na %d generacao\n", i);
-			printf("Score: %d\n", scores[0].score);
+		mutacao();
+		crossover();
+		pontuacao();
+		if(pontos[0].pontuacao < PONT_FINAL){
+			printar_lab_caminho();
+			printf("Caminho encontrado na %d geracao\n", i);
+			//printf("Pontuacao: %d\n", pontos[0].pontuacao);
 
 			break;
 		}
 		if(i % 100 == 0){
 			printf("geracao: %d\n", i);
-			//move_player(); // best
-			//print_maze();
-			//player_reset();
+			mover_pessoa(); // best
+			//printar_lab();
+			//resetar_pessoa();
 		}
 	}
 }
